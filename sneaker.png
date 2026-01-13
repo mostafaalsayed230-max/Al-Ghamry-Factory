@@ -1,0 +1,128 @@
+import toga
+from toga.style import Pack
+from toga.style.pack import COLUMN, ROW
+from database import admin_exists, create_admin, verify_user
+from excel_utils import export_raw_materials, import_raw_materials
+
+class AlGhamryApp(toga.App):
+    def startup(self):
+        self.main_window = toga.MainWindow(title="🏭 Al-Ghamry Factory")
+        if not admin_exists():
+            self.show_create_admin()
+        else:
+            self.show_login()
+
+    # إنشاء المدير الأول
+    def show_create_admin(self):
+        box = toga.Box(style=Pack(direction=COLUMN, padding=20, alignment='center'))
+        username = toga.TextInput(placeholder="اسم المستخدم")
+        password = toga.PasswordInput(placeholder="كلمة المرور")
+        button = toga.Button("إنشاء مدير", on_press=lambda w: self.create_admin_action(username.value, password.value))
+        box.add(username)
+        box.add(password)
+        box.add(button)
+        self.main_window.content = box
+        self.main_window.show()
+
+    def create_admin_action(self, username, password):
+        if username and password:
+            create_admin(username, password)
+            self.show_login()
+
+    # تسجيل الدخول
+    def show_login(self):
+        box = toga.Box(style=Pack(direction=COLUMN, padding=20, alignment='center'))
+        username = toga.TextInput(placeholder="اسم المستخدم")
+        password = toga.PasswordInput(placeholder="كلمة المرور")
+        button = toga.Button("تسجيل الدخول", on_press=lambda w: self.login_action(username.value, password.value))
+        box.add(username)
+        box.add(password)
+        box.add(button)
+        self.main_window.content = box
+        self.main_window.show()
+
+    def login_action(self, username, password):
+        role = verify_user(username, password)
+        if role:
+            self.show_dashboard(role)
+        else:
+            self.main_window.info_dialog("خطأ", "اسم المستخدم أو كلمة المرور غير صحيح!")
+
+    # لوحة المدير والمندوب (واجهة أفقية)
+    def show_dashboard(self, role):
+        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # أعلى الواجهة: شعار + صورة كوتشي
+        header = toga.Box(style=Pack(direction=ROW, padding=10, alignment='center'))
+        
+        # شعار المصنع AM
+        logo_label = toga.Label("🏭 AM", style=Pack(font_size=30, padding_right=50))
+        header.add(logo_label)
+
+        # صورة الكوتشي
+        try:
+            sneaker_image = toga.Image("sneaker.png")
+            img_view = toga.ImageView(image=sneaker_image, style=Pack(width=150, height=150))
+            header.add(img_view)
+        except Exception as e:
+            print("❌ لم يتم تحميل صورة الكوتشي:", e)
+
+        main_box.add(header)
+
+        # الأزرار: أفقي للمدير، عمودي للمندوب
+        if role == "admin":
+            buttons_box = toga.Box(style=Pack(direction=ROW, padding=10))
+            btn_width = 180
+
+            buttons_box.add(toga.Button("إدارة المواد الخام", on_press=self.manage_raw_materials, style=Pack(width=btn_width)))
+            buttons_box.add(toga.Button("إدارة المنتجات", on_press=self.manage_products, style=Pack(width=btn_width)))
+            buttons_box.add(toga.Button("تسجيل إنتاج", on_press=self.record_production, style=Pack(width=btn_width)))
+            buttons_box.add(toga.Button("فواتير ومرتجعات", on_press=self.manage_invoices, style=Pack(width=btn_width)))
+            buttons_box.add(toga.Button("تقارير مالية", on_press=self.show_reports, style=Pack(width=btn_width)))
+            buttons_box.add(toga.Button("استيراد/تصدير Excel", on_press=self.manage_excel, style=Pack(width=btn_width)))
+
+            main_box.add(buttons_box)
+
+        elif role == "agent":
+            buttons_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+            btn_width = 220
+
+            buttons_box.add(toga.Button("فواتير ومرتجعات", on_press=self.manage_invoices, style=Pack(width=btn_width)))
+            buttons_box.add(toga.Button("جرد المنتجات والخامات", on_press=self.show_inventory, style=Pack(width=btn_width)))
+            buttons_box.add(toga.Button("عرض أسعار المنتجات", on_press=self.show_prices, style=Pack(width=btn_width)))
+
+            main_box.add(buttons_box)
+
+        # زر خروج
+        main_box.add(toga.Button("خروج", on_press=self.main_window.close, style=Pack(padding_top=20)))
+
+        self.main_window.content = main_box
+        self.main_window.show()
+
+    # ================= الوظائف الحقيقية =================
+    def manage_raw_materials(self, widget):
+        self.main_window.info_dialog("المواد الخام", "إضافة/تعديل/حذف المواد الخام")
+
+    def manage_products(self, widget):
+        self.main_window.info_dialog("المنتجات", "إدارة المنتجات ووصفات الإنتاج")
+
+    def record_production(self, widget):
+        self.main_window.info_dialog("إنتاج", "تسجيل الإنتاج وخصم المخزون تلقائي")
+
+    def manage_invoices(self, widget):
+        self.main_window.info_dialog("الفواتير", "إصدار فواتير ومرتجعات")
+
+    def show_reports(self, widget):
+        self.main_window.info_dialog("التقارير المالية", "عرض الأرباح والخسائر والديون")
+
+    def manage_excel(self, widget):
+        self.main_window.info_dialog("Excel", "استيراد وتصدير البيانات")
+
+    def show_inventory(self, widget):
+        self.main_window.info_dialog("جرد المخزون", "عرض كمية المواد الخام والمنتجات")
+
+    def show_prices(self, widget):
+        self.main_window.info_dialog("الأسعار", "عرض أسعار المنتجات (سرية الخامات)")
+
+def start_app():
+    return AlGhamryApp('Al-Ghamry Factory', 'com.alghamry.factory').main_loop()
