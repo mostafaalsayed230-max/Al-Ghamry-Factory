@@ -6,26 +6,20 @@ from database import admin_exists, create_admin, verify_user
 class AlGhamryApp(toga.App):
 
     def startup(self):
-        # النافذة الرئيسية
         self.main_window = toga.MainWindow(title="🏭 Al-Ghamry Factory")
-
         if not admin_exists():
             self.show_create_admin()
         else:
             self.show_login()
 
-    # إنشاء المدير الأول
     def show_create_admin(self):
         box = toga.Box(style=Pack(direction=COLUMN, padding=20))
-
-        username_input = toga.TextInput(placeholder="اسم المستخدم")
-        password_input = toga.PasswordInput(placeholder="كلمة المرور")
-        button = toga.Button("إنشاء مدير", on_press=lambda w: self.create_admin_action(username_input.value, password_input.value))
-
-        box.add(username_input)
-        box.add(password_input)
+        username = toga.TextInput(placeholder="اسم المستخدم")
+        password = toga.PasswordInput(placeholder="كلمة المرور")
+        button = toga.Button("إنشاء مدير", on_press=lambda w: self.create_admin_action(username.value, password.value))
+        box.add(username)
+        box.add(password)
         box.add(button)
-
         self.main_window.content = box
         self.main_window.show()
 
@@ -34,16 +28,14 @@ class AlGhamryApp(toga.App):
             create_admin(username, password)
             self.show_login()
 
-    # شاشة تسجيل الدخول
     def show_login(self):
         box = toga.Box(style=Pack(direction=COLUMN, padding=20))
-        username_input = toga.TextInput(placeholder="اسم المستخدم")
-        password_input = toga.PasswordInput(placeholder="كلمة المرور")
-        button = toga.Button("تسجيل الدخول", on_press=lambda w: self.login_action(username_input.value, password_input.value))
-        box.add(username_input)
-        box.add(password_input)
+        username = toga.TextInput(placeholder="اسم المستخدم")
+        password = toga.PasswordInput(placeholder="كلمة المرور")
+        button = toga.Button("تسجيل الدخول", on_press=lambda w: self.login_action(username.value, password.value))
+        box.add(username)
+        box.add(password)
         box.add(button)
-
         self.main_window.content = box
         self.main_window.show()
 
@@ -54,21 +46,25 @@ class AlGhamryApp(toga.App):
         else:
             self.main_window.info_dialog("خطأ", "اسم المستخدم أو كلمة المرور غير صحيح!")
 
-    # شاشة المدير أو المندوب
     def show_dashboard(self, role):
         box = toga.Box(style=Pack(direction=COLUMN, padding=20))
-
         box.add(toga.Label(f"مرحبًا بك! الدور: {role}"))
 
+        # أزرار المدير
         if role == "admin":
             box.add(toga.Button("إدارة المستخدمين", on_press=self.not_implemented))
-            box.add(toga.Button("إدارة المخزون", on_press=self.not_implemented))
-        elif role == "agent":
+            box.add(toga.Button("إدارة المواد الخام", on_press=self.not_implemented))
+            box.add(toga.Button("إدارة المنتجات", on_press=self.not_implemented))
+            box.add(toga.Button("تسجيل إنتاج", on_press=self.not_implemented))
             box.add(toga.Button("فواتير", on_press=self.not_implemented))
-            box.add(toga.Button("جرد المنتجات", on_press=self.not_implemented))
+            box.add(toga.Button("تقارير مالية", on_press=self.not_implemented))
+        # أزرار المندوب
+        elif role == "agent":
+            box.add(toga.Button("فواتير ومرتجعات", on_press=self.not_implemented))
+            box.add(toga.Button("جرد المنتجات والخامات", on_press=self.not_implemented))
+            box.add(toga.Button("عرض أسعار المنتجات", on_press=self.not_implemented))
 
         box.add(toga.Button("خروج", on_press=self.main_window.close))
-
         self.main_window.content = box
         self.main_window.show()
 
