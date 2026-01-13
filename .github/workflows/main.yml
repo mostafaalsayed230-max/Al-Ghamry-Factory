@@ -1,6 +1,5 @@
 name: Build Al-Ghamry GUI App
 
-# يعمل عند كل push أو عند إنشاء release
 on:
   push:
     branches: [main]
@@ -12,34 +11,29 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # 1️⃣ تنزيل الكود
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ إعداد Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # 3️⃣ تثبيت المتطلبات
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
 
-      # 4️⃣ إنشاء مجلد dist إذا مش موجود
+      # ✅ تعديل لإنشاء مجلد dist في PowerShell
       - name: Prepare dist folder
         run: |
-          if not exist dist mkdir dist
+          if (-not (Test-Path dist)) { New-Item -ItemType Directory -Name dist }
 
-      # 5️⃣ بناء التطبيق GUI كملف .exe واحد
       - name: Build EXE with PyInstaller
         run: |
           pyinstaller --onefile --windowed --name AlGhamryApp app.py
 
-      # 6️⃣ رفع التطبيق النهائي كـ Artifact
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
