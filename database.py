@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 import hashlib
 
-DB_FILE = 'factory.db'
+DB_FILE = "factory.db"
 
 def get_connection():
     return sqlite3.connect(DB_FILE)
@@ -11,92 +11,92 @@ def init_db():
     conn = get_connection()
     c = conn.cursor()
 
-    # المستخدمين
-    c.execute('''
+    # مستخدمين
+    c.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        role TEXT NOT NULL,
+        username TEXT UNIQUE,
+        password_hash TEXT,
+        role TEXT,
         created_at TEXT
     )
-    ''')
+    """)
 
     # المواد الخام
-    c.execute('''
+    c.execute("""
     CREATE TABLE IF NOT EXISTS raw_materials (
         id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        unit TEXT NOT NULL,
-        current_stock REAL NOT NULL DEFAULT 0,
-        cost_per_unit REAL NOT NULL
+        name TEXT UNIQUE,
+        unit TEXT,
+        current_stock REAL DEFAULT 0,
+        cost_per_unit REAL
     )
-    ''')
+    """)
 
     # المنتجات
-    c.execute('''
+    c.execute("""
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        selling_price REAL NOT NULL
+        name TEXT UNIQUE,
+        selling_price REAL
     )
-    ''')
+    """)
 
-    # وصفات الإنتاج
-    c.execute('''
+    # وصفة الإنتاج
+    c.execute("""
     CREATE TABLE IF NOT EXISTS production_recipes (
         product_id INTEGER,
         raw_material_id INTEGER,
-        quantity_needed REAL NOT NULL,
+        quantity_needed REAL,
         PRIMARY KEY(product_id, raw_material_id)
     )
-    ''')
+    """)
 
     # سجل الإنتاج
-    c.execute('''
+    c.execute("""
     CREATE TABLE IF NOT EXISTS production_logs (
         id INTEGER PRIMARY KEY,
         product_id INTEGER,
-        quantity_produced INTEGER NOT NULL,
-        date TEXT NOT NULL
+        quantity_produced INTEGER,
+        date TEXT
     )
-    ''')
+    """)
 
     # الفواتير
-    c.execute('''
+    c.execute("""
     CREATE TABLE IF NOT EXISTS invoices (
         id INTEGER PRIMARY KEY,
-        customer_name TEXT NOT NULL,
-        total_amount REAL NOT NULL,
-        paid_amount REAL NOT NULL DEFAULT 0,
-        date TEXT NOT NULL
+        customer_name TEXT,
+        total_amount REAL,
+        paid_amount REAL DEFAULT 0,
+        date TEXT
     )
-    ''')
+    """)
 
     # تفاصيل الفواتير
-    c.execute('''
+    c.execute("""
     CREATE TABLE IF NOT EXISTS invoice_items (
         invoice_id INTEGER,
         product_id INTEGER,
-        quantity INTEGER NOT NULL,
-        price_per_unit REAL NOT NULL
+        quantity INTEGER,
+        price_per_unit REAL
     )
-    ''')
+    """)
 
     # المصروفات
-    c.execute('''
+    c.execute("""
     CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY,
-        description TEXT NOT NULL,
-        amount REAL NOT NULL,
-        date TEXT NOT NULL
+        description TEXT,
+        amount REAL,
+        date TEXT
     )
-    ''')
+    """)
 
     conn.commit()
     conn.close()
 
-# ===== إدارة المستخدمين =====
+# ===== المستخدمين =====
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
